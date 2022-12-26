@@ -1,5 +1,8 @@
 # word-search-cla
-Simple word search application.
+Simple word search command line application.
+Further instruction can be found in the program.
 
-Credit to charlesreid1 for the 5 letter word repo.
+Main function is in WordSearchInterface.java file. 
+
+Word list from charlesreid1's 5 letter word repository.
 https://github.com/charlesreid1/five-letter-words/blob/master/sgb-words.txt 
