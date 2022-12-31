@@ -28,7 +28,7 @@ public class WordSearchGame {
            //generate random words
             ArrayList<String> RandomWords = generateWords();
 
-           //genrate a new table witht he random words for the new page
+           //genrate a new table with the random words for the new page
            pageTable = generatePageTable(pageTable, RandomWords);
            
            //set the page with the generated table
@@ -38,26 +38,10 @@ public class WordSearchGame {
             System.out.print(exception.getMessage());
             System.exit(1);
         }
-
-        printTable(page.getTable());
-        System.out.println("WORDS: "+ page.getWords());
+        printGame();
     }
-    //return a formatted string of the current word search table
-    public String getTableString(){
-        String TableString = "";
-        char[][] pageTable = page.getTable();        
-
-        for(char[] i : pageTable){
-            for(char j : i){
-                TableString += j+"  ";
-            }
-            TableString += "\n"; 
-        }
-        return TableString;
-    }
-    
-    // return a list of words in the board
-    public ArrayList<String> getWords(){
+      // return a list of words in the board
+      public ArrayList<String> getWords(){
         return page.getWords();
     }
     //return a llist of words that need to be found
@@ -67,9 +51,6 @@ public class WordSearchGame {
     //return  a list of words that have been found
     public ArrayList<String> getWordsFound(){
         return page.getWordsFound();
-    }
-    public Page getCurrentPage(){
-        return page;
     }
 
     /**
@@ -84,7 +65,7 @@ public class WordSearchGame {
         
         //generate 5 random numbers
         ArrayList<Integer> randomNums = new ArrayList<Integer>();
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < 5; i++){
             randomNums.add(ThreadLocalRandom.current().nextInt(0,5757));
         }
         //sort the array so the words will be collected in order
@@ -118,15 +99,13 @@ public class WordSearchGame {
             } 
            }
         }
-
-        //fill in the gaps with randome letters
+        //fill in the gaps with random letters
         String alphabet = "abcdefghijklmnopqrstuvwxyz";
         Random l = new Random();
-
         for(int r=0; r < pageTable.length ; r++){
             for(int c = 0; c < pageTable[r].length; c++){
                 if (pageTable[r][c] == '?'){ 
-                    //fill in the gaps with random letters +++++++++++++
+                    //fill in the gaps with random letters
                     pageTable[r][c] = alphabet.charAt(l.nextInt(alphabet.length()));
                 }
             }
@@ -135,23 +114,12 @@ public class WordSearchGame {
     }
 
     public void printGame(){
-        System.out.print(" ");
-        for(int i = 0; i < page.getTable()[0].length; i++){System.out.print("  " + i);}
-        System.out.println("");
-        for (int t = 0; t < page.getTable().length; t++){
-            System.out.print(t);
-            for (char c: page.getTable()[t]){
-                System.out.print("  " + c);
-            }
-            System.out.print("\n");
-        }
-        for(int i = 0; i < page.getTable().length*3 + 2; i++){
-            System.out.print("-");
-        }
-        System.out.println("\n WORDS TO FIND: \n"+page.getWordsToFind());
+        String divider = "--------------------------------";
+        System.out.println(divider +"\nWELCOME: Enter 'Help' for help\n"+ divider);
+        printTable(page.getTable());
+        System.out.println(divider);
+        System.out.println("\nWORDS TO FIND: \n"+page.getWordsToFind());
     }
-
-
     public void printTable(char[][] table){
         System.out.print(" ");
         for(int i = 0; i < table[0].length; i++){System.out.print("  " + i);}
@@ -163,32 +131,76 @@ public class WordSearchGame {
             }
             System.out.print("\n");
         }
-        System.out.println("--------------------------------");
+    }
+    public void clearScreen(){
+        System.out.print("\033[H\033[2J");
+    }
+    public void refresh(String statusMSG){
+        clearScreen();
+        printGame();
+        System.out.println(statusMSG);
+        System.out.print("\n>");
     }
 
-    public String getTableFormat(char [][] table){
-        String formTable = "\n ";
-        for(int i = 0; i < table[0].length; i++){formTable+=("  " + i);}
-        formTable += "\n";
-        for (int t = 0; t < table.length; t++){
-            formTable+=(t);
-            for (char c: table[t]){
-                formTable += ("  " + c);
-            }
-            formTable += ("\n");
-        }
-        formTable += ("--------------------------------");
-
-        return formTable;
-    }
-
-    //if enabled will print out generation information
+    //if enabled will print out board generation information
     public void devMsg(String msg){
         boolean enableDevMsg = false;
-
         if (enableDevMsg){
             System.out.println(msg);
         }
+    }
+
+    public void findWord(int x1, int y1, int x2, int y2){
+        //declare variables
+        char[][] table = page.getTable();
+        String guess = "";
+        int magnitude = 0;
+        int dy = 0;
+        int dx = 0;
+        
+        //deterrmine the slope
+        int slope[] = {(y2-y1), (x2 - x1)};
+        devMsg("("+slope[1]+"/"+slope[0]+")");
+
+        //input validation: Make sure the slope moves in one of the 6 directions in a straight line
+        if(Math.abs(slope[0]) != Math.abs(slope[1]) && slope[1] != 0 && slope[0] != 0){
+            System.out.println("INVALID PATH");
+        }
+        
+        if(slope[0] != 0){
+            dy = slope[0]/Math.abs(slope[0]);
+            magnitude = Math.abs(slope[0]);
+        }
+        if(slope[1] != 0){
+            dx = slope[1]/Math.abs(slope[1]);
+            magnitude = Math.abs(slope[1]);
+        }
+        //follow given path to build word
+        for(int i = 0; i <= magnitude ; i++){
+            guess += table[y1][x1];
+            x1 += dx;
+            y1 += dy;
+        }
+        //check if the word is in the word list
+        if (page.getWords().contains(guess)){
+            if(page.getWordsToFind().contains(guess)){
+                page.foundWord(guess);
+                refresh("\nWord Found: " + guess + "\n\nWORDS FOUND: \n" + page.getWordsFound());
+                if (page.getWordsToFind().isEmpty() )CompleteGame();    
+            }
+            else{
+                refresh("\nThe word "+guess+" has already been found \n");
+            }
+        }
+        else{
+            refresh("\n'"+guess +"' is not in the word list. \n");
+        }
+    }
+    
+    private void CompleteGame(){
+        clearScreen();
+        System.out.print("CONGRATULATIONS,\nYou have fouund all the words in the Word Search!"+
+        "\n\nTYPE 'Q' TO QUIT or 'R' TO RESET\n>");
     }
 
     private Boolean addWord(char[][] table, String word){
@@ -373,60 +385,13 @@ public class WordSearchGame {
            devMsg("Word not placed");
         }
         
-        //devMsg("Test Board");
-        //System.out.println(getTableFormat(testTable));
-        //System.out.println("Acc Board");
-        //printTable(table);
+       /* devMsg("Test Board");
+        printTable(testTable);
+        System.out.println("Acc Board");
+        printTable(table); */
         return false;
     }
     
-    public boolean guessWord(int x1, int y1, int x2, int y2){
-        char[][] table = page.getTable();
-        String guess = "";
-        int magnitude = 0;
-        int dy = 0;
-        int dx = 0;
-        
-        //deterrmine the slope
-         int slope[] = {(y2-y1), (x2 - x1)};
     
-        devMsg("("+slope[1]+"/"+slope[0]+")");
-        
-        //input validation
-        if(Math.abs(slope[0]) != Math.abs(slope[1]) && slope[1] != 0 && slope[0] != 0){
-            System.out.println("INVALID PATH");
-            return false;
-        }
-        
-        if(slope[0] != 0){
-            dy = slope[0]/Math.abs(slope[0]);
-            magnitude = Math.abs(slope[0]);
-        }
-        if(slope[1] != 0){
-            dx = slope[1]/Math.abs(slope[1]);
-            magnitude = Math.abs(slope[1]);
-        }
-
-        for(int i = 0; i <= magnitude ; i++){
-            guess += table[y1][x1];
-        
-            x1 += dx;
-            y1 += dy;
-
-        }
-        if (page.getWords().contains(guess)){
-            if(page.getWordsToFind().contains(guess)){
-                System.out.println("\nWord Found:" + guess + "\n");
-                System.out.println("--------------------------------");
-                page.foundWord(guess);
-            }
-            else{
-                System.out.println("\nThe word "+guess+" has already been found \n");
-            }
-            return true;
-        }
-        System.out.println("\n'"+guess +"' is not in the word list. \n");
-        return false;
-    }
 
 }
