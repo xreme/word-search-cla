@@ -8,12 +8,10 @@ public class Page {
     private char[][] pageTable;
 
     public Page(ArrayList<String> wordlList, char[][] pageTable ){
-
         this.wordList = wordlList;
         this.pageTable = pageTable;
         this.wordsToFind = (ArrayList<String>) wordlList.clone();
     }
-
     public char[][] getTable(){
         return pageTable;
     }
@@ -32,3 +30,4 @@ public class Page {
     }
 
 }
+
